@@ -3,7 +3,7 @@ name = "kvs"
 version = "0.1.0"
 authors = ["Gavin Chan <gavinwhchan@gmail.com>"]
 description = "A key-value store"
-edition = "2021"
+edition = "2018"
 
 [dependencies]
 clap = "2.32.0"
