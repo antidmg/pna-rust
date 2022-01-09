@@ -1,7 +1,8 @@
 use clap::{App, AppSettings, Arg, SubCommand};
-use std::process::exit;
+use kvs::{KvStore, Result};
+use std::{env, process::exit};
 
-fn main() {
+fn main() -> Result<()> {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -32,12 +33,16 @@ fn main() {
         .get_matches();
 
     match matches.subcommand() {
-        ("set", Some(_matches)) => {
-            eprintln!("unimplemented");
-            exit(1);
+        ("set", Some(matches)) => {
+            let key = matches.value_of("KEY").unwrap_or_else(|| exit(1));
+            let value = matches.value_of("VALUE").unwrap_or_else(|| exit(1));
+            println!("SET key: {}, value: {}", key, value);
+
+            let mut store = KvStore::open(env::current_dir()?)?;
+            store.set(key.to_string(), value.to_string())?;
         }
         ("get", Some(_matches)) => {
-            eprintln!("unimplemented");
+            eprintln!("get is unimplemented");
             exit(1);
         }
         ("rm", Some(_matches)) => {
@@ -46,4 +51,6 @@ fn main() {
         }
         _ => unreachable!(),
     }
+
+    Ok(())
 }
