@@ -34,9 +34,8 @@ fn main() -> Result<()> {
 
     match matches.subcommand() {
         ("set", Some(matches)) => {
-            let key = matches.value_of("KEY").unwrap_or_else(|| exit(1));
-            let value = matches.value_of("VALUE").unwrap_or_else(|| exit(1));
-            println!("SET key: {}, value: {}", key, value);
+            let key = matches.value_of("KEY").unwrap();
+            let value = matches.value_of("VALUE").unwrap();
 
             let mut store = KvStore::open(env::current_dir()?)?;
             store.set(key.to_string(), value.to_string())?;
@@ -45,9 +44,10 @@ fn main() -> Result<()> {
             eprintln!("get is unimplemented");
             exit(1);
         }
-        ("rm", Some(_matches)) => {
-            eprintln!("unimplemented");
-            exit(1);
+        ("rm", Some(matches)) => {
+            let key = matches.value_of("KEY").unwrap();
+            let mut store = KvStore::open(env::current_dir()?)?;
+            store.remove(key.to_string())?;
         }
         _ => unreachable!(),
     }
