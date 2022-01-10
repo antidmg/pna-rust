@@ -1,10 +1,12 @@
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::{collections::HashMap, ffi::OsStr};
 
-use crate::{Command, Result};
+use crate::command::CommandPos;
+use crate::{Command, KvsError, Result};
 
 /// Wrapper type for a buffered writer that tracks our position in the file
 pub struct BufWriterWithPos<W: Write + Seek> {
@@ -71,6 +73,7 @@ pub struct KvStore {
     path: PathBuf,
     writer: BufWriterWithPos<File>,
     readers: HashMap<u64, BufReaderWithPos<File>>,
+    index: BTreeMap<String, CommandPos>,
 }
 
 #[allow(unused_variables)]
@@ -83,8 +86,26 @@ impl KvStore {
         Ok(())
     }
 
-    pub fn get(&self, key: String) -> Result<Option<String>> {
-        Ok(Some(String::from("ok")))
+    pub fn get(&mut self, key: String) -> Result<Option<String>> {
+        if let Some(cmd_pos) = self.index.get(&key) {
+            // get the reader at the log position
+            let reader_key = &cmd_pos.filename;
+            let reader = self
+                .readers
+                .get_mut(reader_key)
+                .expect("Cannot find log reader");
+            // move to the cmd position
+            reader.seek(SeekFrom::Start(cmd_pos.pos))?;
+            let cmd_reader = reader.take(cmd_pos.len);
+
+            if let Command::Set { value, .. } = serde_json::from_reader(cmd_reader)? {
+                Ok(Some(value))
+            } else {
+                Err(KvsError::BadCommandType)
+            }
+        } else {
+            Ok(None)
+        }
     }
 
     // TODO: update the index as well
@@ -123,6 +144,7 @@ impl KvStore {
             writer,
             readers,
             path,
+            index: BTreeMap::new(),
         })
     }
 }

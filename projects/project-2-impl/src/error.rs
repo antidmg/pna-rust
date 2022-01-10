@@ -7,6 +7,8 @@ pub enum KvsError {
     Io(io::Error),
     /// Serialization error
     Serde(serde_json::Error),
+    /// Unknown command type
+    BadCommandType,
 }
 
 impl From<io::Error> for KvsError {
