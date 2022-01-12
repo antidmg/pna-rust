@@ -1,0 +1,1 @@
+/home/gavin/code/pna-rust/templates/project-2/target/debug/libkvs.rlib: /home/gavin/code/pna-rust/templates/project-2/src/error.rs /home/gavin/code/pna-rust/templates/project-2/src/kv.rs /home/gavin/code/pna-rust/templates/project-2/src/lib.rs
